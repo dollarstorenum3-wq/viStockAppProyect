@@ -1,69 +1,101 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import CardFavorito from '../Componentes/CardFavorito';
-import Buscador from '../Componentes/Buscador';
-import BotonCarrito from '../Componentes/BotonCarrito';
-import { useFavoritos } from '../FavoritosContext';
+import RegistroCarrito from '../Componentes/carrito/RegistroCarrito';
+import ResumenCompra from '../Componentes/carrito/ResumenCompra';
+import { useCarrito } from '../CarritoContext';
 
-export default function Carrito() {
-  const { favoritos } = useFavoritos();
-  const [busqueda, setBusqueda] = useState('');
+export default function Carrito({ navigation }) {
+  const { carrito, totalItems } = useCarrito();
+  const [busqueda, setBusqueda] = React.useState('');
 
-  const carritoFiltrado = favoritos.filter(producto =>
-    producto.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  const carritoFiltrado = carrito.filter(item =>
+    item.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.encabezado}>
-        <Text style={styles.textoEncabezado}>Carrito</Text>
+        <Text style={styles.textoEncabezado}>Carrito de compras</Text>
+        {totalItems > 0 && (
+          <Text style={styles.contadorItems}>({totalItems} productos)</Text>
+        )}
       </View>
-      <Buscador value={busqueda} onChangeText={setBusqueda} />
+      
+      
       <View style={styles.lineaNegra} />
-      <View style={styles.headerContainer}>
-        <BotonCarrito />
-      </View>
-      <Text style={styles.titulo}>Productos en Carrito</Text>
-      <FlatList
-        data={carritoFiltrado}
-        renderItem={({ item }) => <CardFavorito producto={item} />}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.lista}
-      />
+
+      {carrito.length === 0 ? (
+        <View style={styles.carritoVacio}>
+          <Text style={styles.textoCarritoVacio}>No hay productos en tu carrito</Text>
+          <Text style={styles.subtextoCarritoVacio}>
+            ¡Explora nuestros productos y agrega algunos a tu carrito!
+          </Text>
+        </View>
+      ) : (
+        <>
+          <FlatList
+            data={carritoFiltrado}
+            renderItem={({ item }) => <RegistroCarrito item={item} />}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.lista}
+            showsVerticalScrollIndicator={false}
+          />
+    
+          {/* PASA navigation A ResumenCompra */}
+          <ResumenCompra navigation={navigation} />
+        </>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f8f8' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f8f8f8' 
+  },
   encabezado: { 
     backgroundColor: '#a5a4bdff', 
     paddingVertical: 15, 
-    alignItems: 'center' 
+    alignItems: 'center',
   },
   textoEncabezado: { 
     fontSize: 18, 
     fontWeight: 'bold', 
     color: 'black',
-    margin: 16,
+    marginTop:15
   },
-  titulo: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    margin: 5, 
-    color: 'black' 
+  contadorItems: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 4,
   },
   lista: { 
-    paddingHorizontal: 10 
+    paddingBottom: 10 
   },
   lineaNegra: { 
     height: 1, 
     backgroundColor: 'black', 
-    marginVertical: 5 
+    marginVertical: 5, 
+    marginTop:10
   },
-  headerContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'flex-end', 
-    marginBottom: 5 
+  carritoVacio: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  textoCarritoVacio: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  subtextoCarritoVacio: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
